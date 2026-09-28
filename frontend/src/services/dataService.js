@@ -5,13 +5,22 @@
  * seamless fallback to schema datasets.
  */
 
-import productsData from "../data/Product/products.json";
-import categoriesData from "../data/Product/categories.json";
-import blogsData from "../data/Blog/blogs.json";
-import ordersData from "../data/Order/orders.json";
-import customersData from "../data/Customer/customers.json";
-import settingsData from "../data/Settings/settings.json";
-import mediaData from "../data/Product/media.json";
+import productsJson from "../data/Product/products.json";
+import categoriesJson from "../data/Product/categories.json";
+import blogsJson from "../data/Blog/blogs.json";
+import ordersJson from "../data/Order/orders.json";
+import customersJson from "../data/Customer/customers.json";
+import settingsJson from "../data/Settings/settings.json";
+import mediaJson from "../data/Product/media.json";
+
+// Extract arrays safely from the JSON modules
+const productsData = productsJson.default || productsJson.productsData || productsJson;
+const categoriesData = categoriesJson.categoriesData || categoriesJson.default || categoriesJson;
+const blogsData = blogsJson.default || blogsJson.blogsData || blogsJson;
+const ordersData = ordersJson.default || ordersJson.ordersData || ordersJson;
+const customersData = customersJson.default || customersJson.customersData || customersJson;
+const settingsData = settingsJson.default || settingsJson.settingsData || settingsJson;
+const mediaData = mediaJson.default || mediaJson.mediaData || mediaJson;
 
 // Storage Keys
 const STORAGE_KEYS = {
@@ -59,8 +68,17 @@ const getStoredList = (key, fallback) => {
       localStorage.setItem(key, JSON.stringify(fallback));
       return fallback;
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    
+    // Auto-fix for users who received the corrupted __esModule wrapper in their local storage
+    if (parsed && parsed.__esModule) {
+      localStorage.setItem(key, JSON.stringify(fallback));
+      return fallback;
+    }
+    
+    return parsed;
   } catch (e) {
+    localStorage.setItem(key, JSON.stringify(fallback));
     return fallback;
   }
 };
