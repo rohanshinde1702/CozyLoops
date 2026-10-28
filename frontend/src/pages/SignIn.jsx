@@ -6,18 +6,13 @@ import {
   BsLock,
   BsEye,
   BsEyeSlash,
-  BsHeart,
   BsHeartFill,
   BsX,
   BsArrowLeft,
-  BsCheck2Circle,
   BsExclamationCircle,
-  BsShieldCheck,
-  BsTruck,
 } from "react-icons/bs";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebook, FaArrowRight } from "react-icons/fa";
-
 import { LuKeyRound } from "react-icons/lu";
 
 import SocialAuthModal from "../components/auth/SocialAuthModal";
@@ -25,8 +20,8 @@ import SocialAuthModal from "../components/auth/SocialAuthModal";
 const SignIn = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: "user",
-    password: "dumy",
+    email: "demo.customer@cozyloops.com",
+    password: "password123",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -69,51 +64,64 @@ const SignIn = () => {
     setError("");
     setLoading(true);
     try {
-      // DEMO MODE: Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // Simulate brief network delay
+      await new Promise((resolve) => setTimeout(resolve, 600));
 
-      // Mock user response based on email
+      const emailLower = email.toLowerCase().trim();
+      const isAdmin = emailLower.includes("admin");
+      const displayName = isAdmin
+        ? "Demo Administrator"
+        : emailLower.includes("customer")
+        ? "Demo Customer"
+        : email.includes("@")
+        ? email.split("@")[0]
+        : email;
+      const formattedName =
+        displayName.charAt(0).toUpperCase() + displayName.slice(1);
+
+      if (password.length < 4) {
+        throw new Error("Password must be at least 4 characters long.");
+      }
+
       const data = {
-        token: "demo-token-12345",
+        token: "demo-token-" + Date.now(),
         user: {
-          id: 1,
-          name: email.split('@')[0],
+          id: isAdmin ? "admin_01" : "user_01",
+          name: formattedName,
           email: email.trim(),
-          role: email.includes("admin") ? "admin" : "user",
+          role: isAdmin ? "admin" : "user",
+          avatar: isAdmin
+            ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
+            : "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80",
           cart: [],
-          wishlist: []
-        }
+          wishlist: [],
+        },
       };
-
-      if (password.length < 4) throw new Error("Invalid email or password");
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
       // Restore cart from server or user backup
       const userScopedCart = JSON.parse(
-        localStorage.getItem(`user_cart_${data.user.id || data.user._id}`)
+        localStorage.getItem(`user_cart_${data.user.id}`)
       );
       const restoredCart =
-        Array.isArray(data.user.cart) && data.user.cart.length > 0
-          ? data.user.cart
-          : Array.isArray(userScopedCart) && userScopedCart.length > 0
+        Array.isArray(userScopedCart) && userScopedCart.length > 0
           ? userScopedCart
-          : [];
+          : JSON.parse(localStorage.getItem("cart")) || [];
 
       // Restore wishlist from server or user backup
       const userScopedWishlist = JSON.parse(
-        localStorage.getItem(`user_wishlist_${data.user.id || data.user._id}`)
+        localStorage.getItem(`user_wishlist_${data.user.id}`)
       );
       const restoredWishlist =
-        Array.isArray(data.user.wishlist) && data.user.wishlist.length > 0
-          ? data.user.wishlist
-          : Array.isArray(userScopedWishlist) && userScopedWishlist.length > 0
+        Array.isArray(userScopedWishlist) && userScopedWishlist.length > 0
           ? userScopedWishlist
-          : [];
+          : JSON.parse(localStorage.getItem("wishlist")) || [];
 
       localStorage.setItem("cart", JSON.stringify(restoredCart));
       localStorage.setItem("wishlist", JSON.stringify(restoredWishlist));
+
       window.dispatchEvent(new Event("userUpdated"));
       window.dispatchEvent(new Event("cartUpdated"));
       window.dispatchEvent(new Event("wishlistUpdated"));
@@ -122,7 +130,12 @@ const SignIn = () => {
           detail: { message: `Welcome back, ${data.user.name}!` },
         })
       );
-      navigate("/");
+
+      if (isAdmin) {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -142,12 +155,11 @@ const SignIn = () => {
     setForgotLoading(true);
 
     try {
-      // DEMO MODE: Simulate API
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 800));
 
       const data = {
         previewOtp: "123456",
-        message: "Verification code sent"
+        message: "Verification code sent",
       };
 
       setForgotStep(2);
@@ -156,9 +168,7 @@ const SignIn = () => {
         setForgotOtp(data.previewOtp.split(""));
       }
       setForgotSuccess(
-        data.previewOtp
-          ? `Reset Code: ${data.previewOtp} (Auto-filled for testing)`
-          : `Verification code sent to ${forgotEmail}!`
+        `Code sent! For demo testing, code is auto-filled (${data.previewOtp || "123456"}).`
       );
     } catch (err) {
       setForgotError(err.message);
@@ -167,7 +177,6 @@ const SignIn = () => {
     }
   };
 
-  // OTP inputs
   const handleOtpBoxChange = (val, idx) => {
     if (/^[0-9]?$/.test(val)) {
       const newOtp = [...forgotOtp];
@@ -179,32 +188,23 @@ const SignIn = () => {
     }
   };
 
-  // Verify and Reset Password
+  // Reset Password Submit
   const handleResetPassword = async (e) => {
     e.preventDefault();
     const fullOtp = forgotOtp.join("");
-    if (fullOtp.length !== 6) {
-      return setForgotError("Please enter complete 6-digit code.");
-    }
-
-    if (!forgotNewPassword || !forgotConfirmPassword) {
-      return setForgotError("Please fill in all password fields.");
-    }
-
-    if (forgotNewPassword !== forgotConfirmPassword) {
-      return setForgotError("New passwords do not match.");
-    }
-
+    if (fullOtp.length !== 6) return setForgotError("Enter 6-digit code.");
     if (forgotNewPassword.length < 6) {
-      return setForgotError("Password must be at least 6 characters long.");
+      return setForgotError("Password must be at least 6 characters.");
+    }
+    if (forgotNewPassword !== forgotConfirmPassword) {
+      return setForgotError("Passwords do not match.");
     }
 
     setForgotError("");
     setForgotLoading(true);
 
     try {
-      // DEMO MODE: Simulate API
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 800));
 
       if (fullOtp !== "123456") throw new Error("Invalid verification code");
 
@@ -239,16 +239,14 @@ const SignIn = () => {
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className="max-w-5xl w-full min-h-[700px] lg:h-[720px] bg-white rounded-[32px] sm:rounded-[36px] shadow-[0_15px_50px_rgba(108,44,18,0.08)] border border-[#EBDCD0] overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative"
       >
-        {/* ================= LEFT COLUMN: HERO ARTWORK & BENEFITS ================= */}
+        {/* ================= LEFT COLUMN: HERO ARTWORK ================= */}
         <motion.div
           layoutId="auth-image-column"
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="lg:col-span-6 bg-[#FDF6F0] relative flex flex-col justify-between p-7 sm:p-10 lg:p-12 overflow-hidden h-full min-h-[260px] lg:min-h-full border-b lg:border-b-0 lg:border-r border-[#EBDCD0]"
         >
-          {/* Subtle Warm Background Gradient & Overlay */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#FDF7F2]/95 via-[#FDF5EE]/80 to-[#FAF0E6]/95 pointer-events-none z-0" />
 
-          {/* Background Image of Crochet Scene */}
           <motion.img
             layoutId="auth-crochet-image"
             transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
@@ -259,7 +257,6 @@ const SignIn = () => {
               e.target.src = "/uploads/others/signup_art.jpg";
             }}
           />
-         
         </motion.div>
 
         {/* ================= RIGHT COLUMN: SIGN IN FORM ================= */}
@@ -270,8 +267,8 @@ const SignIn = () => {
             transition={{ duration: 0.45, delay: 0.15 }}
           >
             {/* Header */}
-            <div className="text-center mb-5">
-              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#2B1810] tracking-tight mb-2">
+            <div className="text-center mb-4">
+              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#2B1810] tracking-tight mb-1.5">
                 Sign in to your account
               </h1>
 
@@ -283,7 +280,7 @@ const SignIn = () => {
               </div>
 
               <p className="text-xs sm:text-sm text-[#7D6352]">
-                Sign in to manage your orders, cart and favorite crochet items.
+                Sign in to manage your orders, cart and favorite crochet creations.
               </p>
             </div>
 
@@ -295,27 +292,67 @@ const SignIn = () => {
               </div>
             )}
 
-            {/* Form */}
-            <div className="mb-4 flex gap-2">
-              <button
-                type="button"
-                onClick={() => setFormData({ email: "user", password: "dumy" })}
-                className="flex-1 bg-[#FDF6F0] border border-[#EBDCD0] text-[#6C2C12] py-2 rounded-lg text-xs font-semibold hover:bg-[#FCECE0] transition-colors"
-              >
-                Demo User
-              </button>
-              <button
-                type="button"
-                onClick={() => setFormData({ email: "admin", password: "dumy" })}
-                className="flex-1 bg-[#FDF6F0] border border-[#EBDCD0] text-[#6C2C12] py-2 rounded-lg text-xs font-semibold hover:bg-[#FCECE0] transition-colors"
-              >
-                Demo Admin
-              </button>
+            {/* Quick 1-Click Demo Login Selector for Reviewers & Buyers */}
+            <div className="mb-4 p-3 bg-[#FAF4EE] border border-[#E5D7CA] rounded-2xl">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-bold text-[#6C2C12] uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Quick Demo Access (Reviewer Mode)
+                </span>
+                <span className="text-[10px] text-gray-400">1-Click Fill</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData({ email: "demo.customer@cozyloops.com", password: "password123" });
+                    setError("");
+                  }}
+                  className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                    formData.email === "demo.customer@cozyloops.com"
+                      ? "bg-[#6C2C12] text-white border-[#6C2C12] shadow-xs"
+                      : "bg-white text-[#6C2C12] border-[#E0D0C2] hover:bg-[#F3E7DC]"
+                  }`}
+                >
+                  <p className="text-xs font-bold truncate">Customer Account</p>
+                  <p
+                    className={`text-[10px] truncate ${
+                      formData.email === "demo.customer@cozyloops.com"
+                        ? "text-amber-100"
+                        : "text-gray-400"
+                    }`}
+                  >
+                    demo.customer@cozyloops.com
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData({ email: "admin@cozyloops.com", password: "password123" });
+                    setError("");
+                  }}
+                  className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                    formData.email === "admin@cozyloops.com"
+                      ? "bg-[#6C2C12] text-white border-[#6C2C12] shadow-xs"
+                      : "bg-white text-[#6C2C12] border-[#E0D0C2] hover:bg-[#F3E7DC]"
+                  }`}
+                >
+                  <p className="text-xs font-bold truncate">Admin Studio</p>
+                  <p
+                    className={`text-[10px] truncate ${
+                      formData.email === "admin@cozyloops.com" ? "text-amber-100" : "text-gray-400"
+                    }`}
+                  >
+                    admin@cozyloops.com
+                  </p>
+                </button>
+              </div>
             </div>
-            <form onSubmit={handleSignIn} className="space-y-3.5">
+
+            <form onSubmit={handleSignIn} className="space-y-3">
               {/* Email Address */}
               <div>
-                <label className="block text-xs sm:text-sm font-bold text-[#2B1810] mb-1.5">
+                <label className="block text-xs sm:text-sm font-bold text-[#2B1810] mb-1">
                   Email Address
                 </label>
                 <div className="relative">
@@ -334,7 +371,7 @@ const SignIn = () => {
 
               {/* Password */}
               <div>
-                <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center justify-between mb-1">
                   <label className="block text-xs sm:text-sm font-bold text-[#2B1810]">
                     Password
                   </label>
@@ -384,7 +421,7 @@ const SignIn = () => {
               </button>
 
               {/* Divider */}
-              <div className="relative flex items-center justify-center my-2.5">
+              <div className="relative flex items-center justify-center my-2">
                 <div className="border-t border-[#E5D7CA] w-full"></div>
                 <span className="bg-white px-3 text-xs text-gray-400 whitespace-nowrap">
                   or continue with
@@ -415,7 +452,7 @@ const SignIn = () => {
             </form>
 
             {/* Footer Link */}
-            <div className="mt-5 text-center text-xs sm:text-sm text-gray-600">
+            <div className="mt-4 text-center text-xs sm:text-sm text-gray-600">
               Don&apos;t have an account?{" "}
               <Link to="/signup" className="font-bold text-[#E87A8A] hover:underline">
                 Sign Up

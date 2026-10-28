@@ -69,18 +69,63 @@ const getStoredList = (key, fallback) => {
       return fallback;
     }
     const parsed = JSON.parse(raw);
-    
-    // Auto-fix for users who received the corrupted __esModule wrapper in their local storage
     if (parsed && parsed.__esModule) {
       localStorage.setItem(key, JSON.stringify(fallback));
       return fallback;
     }
-    
     return parsed;
   } catch (e) {
     localStorage.setItem(key, JSON.stringify(fallback));
     return fallback;
   }
+};
+
+/**
+ * Helper to ensure every product has a 4-image gallery for lightboxes and thumbnails
+ */
+export const getProductGallery = (product) => {
+  if (!product) return [];
+  if (Array.isArray(product.images) && product.images.length > 1) {
+    return product.images;
+  }
+  const main = product.img || "/uploads/products/decor/sunflower.png";
+  const cat = (product.category || "").toLowerCase();
+  let alternates = [];
+
+  if (cat.includes("kids") || cat.includes("baby")) {
+    alternates = [
+      "/uploads/products/kids/hat.png",
+      "/uploads/products/kids/category-1.png",
+      "/uploads/others/contact_bunny.jpg"
+    ];
+  } else if (cat.includes("decor") || cat.includes("gift")) {
+    alternates = [
+      "/uploads/products/decor/flower keychain.png",
+      "/uploads/products/decor/Cornus florida.png",
+      "/uploads/products/decor/category-1.png"
+    ];
+  } else if (cat.includes("home") || cat.includes("living")) {
+    alternates = [
+      "/uploads/products/home/category-1.png",
+      "/uploads/products/home/category-2.png",
+      "/uploads/others/contact_hearts_basket.jpg"
+    ];
+  } else if (cat.includes("pet") || cat.includes("animal")) {
+    alternates = [
+      "/uploads/products/pet/bee.png",
+      "/uploads/products/pet/frog.png",
+      "/uploads/products/pet/panda.png"
+    ];
+  } else {
+    alternates = [
+      "/uploads/products/custom/letter-r.png",
+      "/uploads/products/custom/category-1.png",
+      "/uploads/others/madeByHand.png"
+    ];
+  }
+
+  const set = new Set([main, ...alternates]);
+  return Array.from(set).slice(0, 4);
 };
 
 /* ==========================================================================
@@ -89,13 +134,22 @@ const getStoredList = (key, fallback) => {
 
 export const getProducts = async (includeDeleted = false) => {
   const list = getStoredList(STORAGE_KEYS.PRODUCTS, productsData);
-  return includeDeleted ? list : list.filter((p) => !p.isDeleted);
+  const filtered = includeDeleted ? list : list.filter((p) => !p.isDeleted);
+  return filtered.map((p) => ({
+    ...p,
+    images: getProductGallery(p)
+  }));
 };
 
 export const getProductById = async (id) => {
   const numericId = Number(id);
   const list = getStoredList(STORAGE_KEYS.PRODUCTS, productsData);
-  return list.find((p) => p.id === numericId || p.id === id) || null;
+  const found = list.find((p) => p.id === numericId || p.id === id) || null;
+  if (!found) return null;
+  return {
+    ...found,
+    images: getProductGallery(found)
+  };
 };
 
 export const saveProduct = async (productData) => {
@@ -152,23 +206,25 @@ export const getCategories = async (includeDeleted = false) => {
   return includeDeleted ? list : list.filter((c) => !c.isDeleted);
 };
 
-export const saveCategory = async (catData) => {
+export const saveCategory = async (categoryData) => {
   const list = getStoredList(STORAGE_KEYS.CATEGORIES, categoriesData);
   let updatedList;
-  if (catData.id || catData._id) {
-    updatedList = list.map((c) => (c.id === catData.id || c.name === catData.name ? { ...c, ...catData } : c));
+  if (categoryData.id || categoryData._id) {
+    const targetId = categoryData.id || categoryData._id;
+    updatedList = list.map((c) => (c.id === targetId || c._id === targetId ? { ...c, ...categoryData } : c));
   } else {
-    const newCat = {
-      ...catData,
-      id: list.length + 1,
-      slug: catData.slug || catData.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    const maxId = list.reduce((max, c) => (typeof c.id === "number" && c.id > max ? c.id : max), 0);
+    const newCategory = {
+      ...categoryData,
+      id: maxId + 1,
+      slug: categoryData.slug || categoryData.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
       isDeleted: false
     };
-    updatedList = [...list, newCat];
+    updatedList = [newCategory, ...list];
   }
   localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(updatedList));
   window.dispatchEvent(new CustomEvent("categoriesUpdated", { detail: updatedList }));
-  return catData;
+  return categoryData;
 };
 
 export const deleteCategory = async (id, permanent = false) => {
@@ -246,6 +302,25 @@ export const restoreBlog = async (id) => {
 
 export const getOrders = async () => {
   return getStoredList(STORAGE_KEYS.ORDERS, ordersData);
+};
+
+export const getOrderById = async (id) => {
+  const list = await getOrders();
+  return list.find((o) => o.orderId === id || o.id === Number(id) || o.id === id || o._id === id) || null;
+};
+
+export const createOrder = async (orderData) => {
+  const list = getStoredList(STORAGE_KEYS.ORDERS, ordersData);
+  const newOrder = {
+    ...orderData,
+    id: list.length + 1,
+    orderId: orderData.orderId || `CL-${Math.floor(100000 + Math.random() * 900000)}`,
+    createdAt: new Date().toISOString()
+  };
+  const updated = [newOrder, ...list];
+  localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(updated));
+  window.dispatchEvent(new CustomEvent("ordersUpdated", { detail: updated }));
+  return newOrder;
 };
 
 export const updateOrderStatus = async (orderId, newStatus) => {

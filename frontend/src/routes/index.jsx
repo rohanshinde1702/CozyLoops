@@ -2,6 +2,8 @@ import { Routes, Route, Outlet } from 'react-router-dom';
 import Header from '../components/header/Header';
 import Footer from '../components/footer/Footer';
 import Home from '../pages/Home';
+import Home2 from '../pages/Home2';
+import Home3 from '../pages/Home3';
 import Cart from '../pages/Cart';
 import Wishlist from '../pages/Wishlist';
 import About from '../pages/About';
@@ -13,6 +15,15 @@ import ProductDetail from '../pages/ProductDetail';
 import SignIn from '../pages/SignIn';
 import SignUp from '../pages/SignUp';
 import Profile from '../pages/Profile';
+
+// Newly added eCommerce storefront pages
+import Checkout from '../pages/Checkout';
+import OrderSuccess from '../pages/OrderSuccess';
+import TrackOrder from '../pages/TrackOrder';
+import FAQ from '../pages/FAQ';
+import PrivacyPolicy from '../pages/PrivacyPolicy';
+import TermsConditions from '../pages/TermsConditions';
+import NotFound from '../pages/NotFound';
 
 // Admin Layout and Pages
 import AdminLayout from '../layouts/AdminLayout';
@@ -48,17 +59,34 @@ const AppRoutes = () => {
       {/* 1. Public Storefront Routes (Rendered with Header & Footer) */}
       <Route path='/' element={<MainLayout />}>
         <Route index element={<Home />} />
+        <Route path='home-1' element={<Home />} />
+        <Route path='home-2' element={<Home2 />} />
+        <Route path='home-3' element={<Home3 />} />
         <Route path='cart' element={<Cart />} />
         <Route path='wishlist' element={<Wishlist />} />
+        <Route path='checkout' element={<Checkout />} />
+        <Route path='order-success' element={<OrderSuccess />} />
+        <Route path='order-success/:id' element={<OrderSuccess />} />
+        <Route path='track-order' element={<TrackOrder />} />
+        <Route path='faq' element={<FAQ />} />
+        <Route path='privacy-policy' element={<PrivacyPolicy />} />
+        <Route path='terms-of-service' element={<TermsConditions />} />
         <Route path='about' element={<About />} />
         <Route path='contact' element={<Contact />} />
         <Route path='shop' element={<Shop />} />
+        <Route path='shop-sidebar' element={<Shop />} />
+        <Route path='shop-drawer' element={<Shop />} />
         <Route path='blog' element={<Blog />} />
+        <Route path='blog-sidebar' element={<Blog />} />
+        <Route path='blog-drawer' element={<Blog />} />
         <Route path='blog/:id' element={<BlogDetail />} />
         <Route path='product/:id' element={<ProductDetail />} />
         <Route path='signin' element={<SignIn />} />
         <Route path='signup' element={<SignUp />} />
         <Route path='profile' element={<Profile />} />
+        <Route path='404' element={<NotFound />} />
+        {/* Wildcard 404 Catch-All within MainLayout */}
+        <Route path='*' element={<NotFound />} />
       </Route>
 
       {/* 2. Admin Studio Dedicated Menu Pages (Shared AdminLayout with Sidebar & Topbar) */}

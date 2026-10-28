@@ -322,13 +322,13 @@ const SignUp = () => {
                 />
                 <label htmlFor="agreeToTerms" className="text-xs text-[#7D6352] cursor-pointer select-none">
                   I agree to the{" "}
-                  <span className="text-[#E87A8A] font-semibold hover:underline">
+                  <Link to="/terms-of-service" className="text-[#E87A8A] font-semibold hover:underline">
                     Terms & Conditions
-                  </span>{" "}
+                  </Link>{" "}
                   and{" "}
-                  <span className="text-[#E87A8A] font-semibold hover:underline">
+                  <Link to="/privacy-policy" className="text-[#E87A8A] font-semibold hover:underline">
                     Privacy Policy
-                  </span>
+                  </Link>
                 </label>
               </div>
 
