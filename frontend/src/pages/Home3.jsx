@@ -63,35 +63,35 @@ const COMMUNITY_PHOTOS = [
     id: 1,
     img: "/uploads/others/contact_bunny.jpg",
     author: "@tanvi_reads",
-    caption: "Bunny found its permanent spot next to the bedtime story stack 🐰",
+    caption: "Bunny found its permanent spot next to the bedtime story stack.",
     tag: "Nursery Corner"
   },
   {
     id: 2,
     img: "/uploads/others/contact_flowers.jpg",
     author: "@botanical_cozy",
-    caption: "Never needing to water this sunflower on my windowsill is pure joy 🌻",
+    caption: "Never needing to water this sunflower on my windowsill is pure joy.",
     tag: "Desk Flora"
   },
   {
     id: 3,
     img: "/uploads/others/contact_hearts_basket.jpg",
     author: "@the_cozy_hearth",
-    caption: "The texture on this cotton basket is unbelievable in person 🧶",
+    caption: "The texture on this cotton basket is unbelievable in person.",
     tag: "Living Room"
   },
   {
     id: 4,
     img: "/uploads/hero/shop-hero.jpg",
     author: "@monsoon_tea",
-    caption: "Warm tea, quiet rain outside, and soft handmade crochet at home ☕",
+    caption: "Warm tea, quiet rain outside, and soft handmade crochet at home.",
     tag: "Quiet Moments"
   },
   {
     id: 5,
     img: "/uploads/others/ourStory.png",
     author: "@slow_living_diary",
-    caption: "Opening a CozyLoops parcel feels like receiving a gift from an old friend 💌",
+    caption: "Opening a CozyLoops parcel feels like receiving a gift from an old friend.",
     tag: "Maker Mail"
   },
   {
@@ -299,8 +299,9 @@ const Home3 = () => {
   return (
     <div className="bg-[#FAF7F2] min-h-screen text-[#4A2B1D]">
       {/* Top Banner Notice */}
-      <div className="bg-[#FAF0E8] border-b border-[#EADFD4] px-4 py-2 text-center text-xs font-semibold text-[#6C2C12]">
-        <span>🧶 Notes from the workbench · Handcrafted at kitchen tables with pure wool & cotton</span>
+      <div className="bg-[#FAF0E8] border-b border-[#EADFD4] px-4 py-2 text-center text-xs font-semibold text-[#6C2C12] flex items-center justify-center gap-1.5">
+        <BsFeather className="text-[#F88897] text-xs shrink-0" />
+        <span>Notes from the workbench · Handcrafted at kitchen tables with pure wool & cotton</span>
       </div>
 
       {/* 1. EDITORIAL SLOW-LIVING HERO */}
@@ -722,7 +723,10 @@ const Home3 = () => {
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3 text-white text-left">
-                  <span className="text-[10px] font-bold text-[#F88897]">{item.author}</span>
+                  <span className="text-[10px] font-bold text-[#F88897] flex items-center gap-1">
+                    <BsInstagram className="text-[9px]" />
+                    <span>{item.author}</span>
+                  </span>
                   <p className="text-[10px] text-white/90 line-clamp-2 leading-tight mt-0.5">
                     {item.caption}
                   </p>

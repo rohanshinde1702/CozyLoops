@@ -311,8 +311,9 @@ const Home2 = () => {
   return (
     <div className="bg-[#FAF7F2] min-h-screen text-[#4A2B1D]">
       {/* Top Quiet Craft Notice */}
-      <div className="bg-[#FAF0E8] border-b border-[#EADFD4] px-4 py-2 text-center text-xs font-semibold text-[#6C2C12]">
-        <span>✨ Every piece is lovingly hand-hooked with 100% natural organic cotton · Free shipping over ₹999</span>
+      <div className="bg-[#FAF0E8] border-b border-[#EADFD4] px-4 py-2 text-center text-xs font-semibold text-[#6C2C12] flex items-center justify-center gap-1.5">
+        <BsStars className="text-[#F88897] text-xs shrink-0" />
+        <span>Every piece is lovingly hand-hooked with 100% natural organic cotton · Free shipping over ₹999</span>
       </div>
 
       {/* 1. HERO SECTION: Modern Craft Boutique */}

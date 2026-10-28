@@ -1,27 +1,49 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import {
   BsShieldLock,
-  BsCheckCircleFill,
   BsCreditCard,
   BsCashCoin,
   BsPhone,
   BsTag,
   BsTruck,
-  BsBoxSeam,
-  BsArrowLeft,
   BsLightningCharge,
   BsInfoCircle
 } from "react-icons/bs";
-import { GiYarn } from "react-icons/gi";
 import { LuHandHeart, LuLeaf } from "react-icons/lu";
+
+const generateOrderNumber = () => {
+  return `CL-${Math.floor(100000 + (Date.now() % 900000))}`;
+};
 
 const Checkout = () => {
   const navigate = useNavigate();
 
-  // Load cart items from localStorage
-  const [cartItems, setCartItems] = useState([]);
+  // Load cart items from localStorage or provide demo items for reviewer testing
+  const [cartItems] = useState(() => {
+    try {
+      const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
+      if (storedCart.length > 0) return storedCart;
+      return [
+        {
+          id: 1,
+          title: "Handcrafted Baby Booties & Socks",
+          price: 199,
+          quantity: 1,
+          img: "/uploads/products/kids/category-1.png"
+        },
+        {
+          id: 2,
+          title: "Radiant Sunshine Sunflower Stem",
+          price: 399,
+          quantity: 2,
+          img: "/uploads/products/decor/sunflower.png"
+        }
+      ];
+    } catch {
+      return [];
+    }
+  });
   const [shippingMethod, setShippingMethod] = useState("standard"); // 'standard' (0) | 'express' (99)
   const [paymentMethod, setPaymentMethod] = useState("card"); // 'card' | 'cod' | 'upi'
   const [couponCode, setCouponCode] = useState("");
@@ -52,39 +74,21 @@ const Checkout = () => {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
-    // If cart is empty, provide demo items so reviewer can test directly without forcing shop visit
-    if (storedCart.length === 0) {
-      const demoCart = [
-        {
-          id: 1,
-          title: "Handcrafted Baby Booties & Socks",
-          price: 199,
-          quantity: 1,
-          img: "/uploads/products/kids/category-1.png"
-        },
-        {
-          id: 2,
-          title: "Radiant Sunshine Sunflower Stem",
-          price: 399,
-          quantity: 2,
-          img: "/uploads/products/decor/sunflower.png"
-        }
-      ];
-      setCartItems(demoCart);
-    } else {
-      setCartItems(storedCart);
-    }
-
-    // Try prefilling from logged in user if available
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (user && user.email) {
-      setFormData((prev) => ({
-        ...prev,
-        email: user.email,
-        firstName: user.name ? user.name.split(" ")[0] : "Artisan",
-        lastName: user.name ? user.name.split(" ").slice(1).join(" ") : "Collector"
-      }));
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (user && user.email) {
+        const timer = setTimeout(() => {
+          setFormData((prev) => ({
+            ...prev,
+            email: user.email,
+            firstName: user.name ? user.name.split(" ")[0] : "Artisan",
+            lastName: user.name ? user.name.split(" ").slice(1).join(" ") : "Collector"
+          }));
+        }, 0);
+        return () => clearTimeout(timer);
+      }
+    } catch {
+      // Ignore user parse errors
     }
   }, []);
 
@@ -118,7 +122,7 @@ const Checkout = () => {
     setErrors({});
     window.dispatchEvent(
       new CustomEvent("showToast", {
-        detail: { message: "⚡ Demo shipping details populated!" }
+        detail: { message: "Demo shipping details populated!" }
       })
     );
   };
@@ -206,7 +210,7 @@ const Checkout = () => {
     // Simulate order creation API delay
     await new Promise((resolve) => setTimeout(resolve, 1200));
 
-    const orderNumber = `CL-${Math.floor(100000 + Math.random() * 900000)}`;
+    const orderNumber = generateOrderNumber();
     const newOrder = {
       orderId: orderNumber,
       date: new Date().toLocaleDateString("en-IN", {
@@ -298,7 +302,7 @@ const Checkout = () => {
             title="Auto-fill with sample address & card data"
           >
             <BsLightningCharge className="text-[#F88897] group-hover:text-white transition-colors" />
-            <span>⚡ 1-Click Fill Demo Details</span>
+            <span>Fill Demo Details</span>
           </button>
         </div>
 

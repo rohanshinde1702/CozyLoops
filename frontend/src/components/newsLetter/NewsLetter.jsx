@@ -33,7 +33,7 @@ const NewsLetter = () => {
       }
 
       setStatus("success");
-      setMessage("🎉 You're subscribed! Use coupon code COZY10 for 10% off your first handcrafted order.");
+      setMessage("You're subscribed! Use coupon code COZY10 for 10% off your first handcrafted order.");
       window.dispatchEvent(
         new CustomEvent("showToast", {
           detail: { message: "Subscribed! Use code COZY10 for 10% off at checkout." },

@@ -42,8 +42,8 @@ const PRICE_RANGES = [
 
 const RATING_OPTIONS = [
   { label: "All Ratings", min: 0 },
-  { label: "4.5★ & Above", min: 4.5 },
-  { label: "4.0★ & Above", min: 4.0 },
+  { label: "4.5 Stars & Above", min: 4.5 },
+  { label: "4.0 Stars & Above", min: 4.0 },
 ];
 
 const SORT_OPTIONS = [
@@ -1065,7 +1065,8 @@ const Shop = () => {
 
               {selectedRating !== 0 && (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-[#EADFD4] text-[#6C2C12] font-semibold">
-                  <span>{selectedRating}★ & above</span>
+                  <BsStarFill className="text-amber-400 text-xs" />
+                  <span>{selectedRating} & above</span>
                   <button onClick={() => setSelectedRating(0)} className="hover:text-red-500">
                     <BsX />
                   </button>

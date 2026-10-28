@@ -11,7 +11,6 @@ import {
   LuFolderTree,
   LuPackage,
   LuChevronRight,
-  LuLayers,
 } from "react-icons/lu";
 import { getCategories, saveCategory } from "../../services/dataService";
 import { getCategoryIcon } from "../../utils/categoryIcons";
@@ -42,7 +41,8 @@ const AdminCategories = () => {
   };
 
   useEffect(() => {
-    fetchCategories();
+    const t = setTimeout(() => { fetchCategories(); }, 0);
+    return () => clearTimeout(t);
   }, []);
 
   const handleAddCategory = async (e) => {
@@ -54,7 +54,7 @@ const AdminCategories = () => {
       const payload = {
         name: newCatName.trim(),
         description: newCatDesc.trim() || "Custom handcrafted collection.",
-        icon: "🧶",
+        icon: "category",
         image: "/uploads/products/decor/sunflower.png",
       };
 
